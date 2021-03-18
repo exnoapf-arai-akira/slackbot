@@ -48,12 +48,18 @@ class MessageDispatcher(object):
 
     def _dispatch_msg_handler(self, category, msg):
         responded = False
-        for func, args in self._plugins.get_plugins(category, msg.get('text', None)):
+        text = None
+        if 'text' in msg:
+            text = msg.get('text', None)
+        elif 'attachments' in msg and len(msg.get('attachments')) > 0:
+            text = msg['attachments'][0].get('pretext', None)
+
+        for func, args in self._plugins.get_plugins(category, text):
             if func:
                 responded = True
                 try:
                     func(Message(self._client, msg), *args)
-                except Exception:
+                except:
                     logger.exception(
                         'failed to handle message %s with plugin "%s"',
                         msg['text'], func.__name__)
@@ -84,8 +90,6 @@ class MessageDispatcher(object):
         except (KeyError, TypeError):
             if 'username' in msg:
                 username = msg['username']
-            elif 'bot_profile' in msg and 'name' in msg['bot_profile']:
-                username = msg['bot_profile']['name']
             else:
                 return
 
@@ -216,10 +220,8 @@ class Message(object):
     def reply_webapi(self, text, attachments=None, as_user=True, in_thread=None):
         """
             Send a reply to the sender using Web API
-
             (This function supports formatted message
             when using a bot integration)
-
             If the message was send in a thread, answer in a thread per default.
         """
         if in_thread is None:
@@ -235,7 +237,6 @@ class Message(object):
     def send_webapi(self, text, attachments=None, as_user=True, thread_ts=None):
         """
             Send a reply using Web API
-
             (This function supports formatted message
             when using a bot integration)
         """
@@ -250,10 +251,8 @@ class Message(object):
     def reply(self, text, in_thread=None):
         """
             Send a reply to the sender using RTM API
-
             (This function doesn't supports formatted message
             when using a bot integration)
-
             If the message was send in a thread, answer in a thread per default.
         """
         if in_thread is None:
@@ -269,7 +268,7 @@ class Message(object):
     def direct_reply(self, text):
         """
             Send a reply via direct message using RTM API
-
+            
         """
         channel_id = self._client.open_dm_channel(self._get_user_id())
         self._client.rtm_send_message(channel_id, text)
@@ -279,7 +278,6 @@ class Message(object):
     def send(self, text, thread_ts=None):
         """
             Send a reply using RTM API
-
             (This function doesn't supports formatted message
             when using a bot integration)
         """
