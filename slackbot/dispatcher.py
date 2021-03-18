@@ -41,7 +41,6 @@ class MessageDispatcher(object):
     def dispatch_msg(self, msg):
         category = msg[0]
         msg = msg[1]
-        print(msg)
         if not self._dispatch_msg_handler(category, msg):
             if category == u'respond_to':
                 if not self._dispatch_msg_handler('default_reply', msg):
@@ -51,9 +50,9 @@ class MessageDispatcher(object):
         responded = False
         text = None
         if 'attachments' in msg and len(msg.get('attachments')) > 0:
-            text = msg['attachments'][0].get('pretext', None)
+            msg['text'] = msg['attachments'][0].get('text', None)
         elif 'text' in msg:
-            text = msg.get('text', None)
+            msg['text'] = msg.get('text', None)
 
         for func, args in self._plugins.get_plugins(category, text):
             if func:
