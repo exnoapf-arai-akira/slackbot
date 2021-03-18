@@ -49,10 +49,10 @@ class MessageDispatcher(object):
     def _dispatch_msg_handler(self, category, msg):
         responded = False
         text = None
-        if 'text' in msg:
-            text = msg.get('text', None)
-        elif 'attachments' in msg and len(msg.get('attachments')) > 0:
+        if 'attachments' in msg and len(msg.get('attachments')) > 0:
             text = msg['attachments'][0].get('pretext', None)
+        elif 'text' in msg:
+            text = msg.get('text', None)
 
         for func, args in self._plugins.get_plugins(category, text):
             if func:
