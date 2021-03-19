@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 import logging
 import re
+import json
 import time
 import traceback
 from functools import wraps
@@ -48,13 +49,10 @@ class MessageDispatcher(object):
 
     def _dispatch_msg_handler(self, category, msg):
         responded = False
-        text = None
         if 'attachments' in msg and len(msg.get('attachments')) > 0:
-            msg['text'] = msg['attachments'][0].get('text', None)
-        elif 'text' in msg:
-            msg['text'] = msg.get('text', None)
+            msg['text'] += json.dumps(msg['attachments'][0])
 
-        for func, args in self._plugins.get_plugins(category, text):
+        for func, args in self._plugins.get_plugins(category, msg['text']):
             if func:
                 responded = True
                 try:
